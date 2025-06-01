@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>美食日記</title>
+    <style>
+        /* --- 保留你原本所有樣式 --- */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background: #faf7f2;
+            color: #333;
+        }
+
+        header {
+            background: #ff8c69;
+            color: white;
+            padding: 20px;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        nav {
+            background: #ffe2d1;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        nav a {
+            color: #333;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: #ffc2a1;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            background: #ffddb8;
+            transform: scale(1.1);
+        }
+
+        main {
+            padding: 30px;
+            background: white;
+            margin: 20px auto;
+            width: 80%;
+            border-radius: 10px;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s linear;
+            height: auto;
+            display: none;
+        }
+
+        main.active {
+            visibility: visible;
+            opacity: 1;
+            display: block;
+        }
+
+        footer {
+            background: #ff8c69;
+            color: white;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        button {
+            padding: 12px 18px;
+            font-size: 18px;
+            cursor: pointer;
+            background: #ff8c69;
+            color: white;
+            border-radius: 8px;
+            transition: 0.3s;
+            border: none;
+        }
+
+        button:hover {
+            background: #ffb394;
+            transform: scale(1.05);
+        }
+
+        .note-wrapper {
+            position: relative;
+            margin: 20px auto;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .note-wrapper::before,
+        .note-wrapper::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 20px;
+            background: repeating-linear-gradient(45deg,
+                    #ffc2a1,
+                    #ffc2a1 5px,
+                    #ffe2d1 5px,
+                    #ffe2d1 10px);
+            opacity: 0.6;
+            transform: rotate(-5deg);
+            top: -10px;
+            border-radius: 4px;
+            z-index: 1;
+        }
+
+        .note-wrapper::after {
+            right: 20px;
+            transform: rotate(8deg);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 20px 25px;
+            border-radius: 16px;
+            border: 2px dashed #ffb394;
+            background: #fffdf6;
+            font-size: 18px;
+            line-height: 1.8;
+            font-family: 'Segoe Print', 'Comic Sans MS', cursive;
+            box-shadow: 6px 6px 15px rgba(255, 140, 105, 0.15);
+            transition: box-shadow 0.3s, border-color 0.3s;
+            resize: vertical;
+            position: relative;
+            z-index: 2;
+        }
+
+        textarea:focus {
+            border-color: #ff8c69;
+            box-shadow: 0 0 12px rgba(255, 140, 105, 0.3);
+            outline: none;
+        }
+
+        .history-item {
+            background: #fffaf3;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .history-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .delete-btn {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            position: absolute;
+            right: 10px;
+            top: 10px;
+        }
+
+        .rating {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .rating span {
+            font-size: 30px;
+            cursor: pointer;
+            color: #ccc;
+            transition: color 0.3s;
+        }
+
+        .rating span.active {
+            color: gold;
+        }
+
+        @media (max-width: 600px) {
+            nav {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            main {
+                width: 95%;
+                max-width: 500px;
+                padding: 15px;
+            }
+
+            textarea,
+            select,
+            input {
+                width: 100%;
+            }
+
+            .rating span {
+                font-size: 24px;
+            }
+
+            .history-item img {
+                width: 80px;
+                height: 80px;
+            }
+
+            button {
+                width: 100%;
+                font-size: 16px;
+                padding: 10px;
+            }
+
+            .image-wrapper {
+                text-align: center;
+                margin-bottom: 10px;
+            }
+
+            .history-item img {
+                width: 100%;
+                max-width: 400px;
+                height: auto;
+                object-fit: cover;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                transition: transform 0.3s ease;
+            }
+
+            .history-item img:hover {
+                transform: scale(1.03);
+            }
+        }
+    </style>
+    <style>
+        #wheel-result {
+            transition: transform 0.3s ease;
+        }
+
+        #wheel-result.animate {
+            animation: pulse 0.3s;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.15);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+    <!-- 頁首部分 -->
+    <header onclick="window.location.href = window.location.pathname;">美食日記</header>
+
+    <!-- 導航欄 -->
+    <nav>
+        <a href="#" id="m1" data-target="history-page">吃過的美食</a>
+        <a href="#" id="m2" data-target="main-content">編輯日記</a>
+        <a href="#" id="m3" href="#" data-target="selection-page">幫你選擇</a>
+    </nav>
+
+    <!-- 美食歷史紀錄頁面 -->
+    <main id="history-page">
+        <h2>吃過的美食</h2>
+        <div id="history-content" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </main>
+
+    <!-- 主要內容區，編輯日記部分 -->
+    <main id="main-content" class="active">
+        <h2>新增美食紀錄</h2>
+        <div class="note-wrapper">
+            <input type="text" id="store-name" placeholder="店名"
+                style="width: 50%; font-size: 16px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 10px;" />
+
+            <textarea id="food-description" placeholder="請輸入你的美食紀錄..."></textarea>
+            <textarea id="mood-note" placeholder="心情如何"></textarea>
+        </div>
+        <input type="file" id="image-upload" accept="image/*" />
+        <select id="category">
+            <option value="早餐">早餐</option>
+            <option value="午餐">午餐</option>
+            <option value="晚餐">晚餐</option>
+            <option value="甜點">甜點</option>
+        </select>
+
+        <div class="rating-group">
+            <div><strong>外觀</strong></div>
+            <div class="rating" data-category="appearance">
+                <span data-value="1">★</span>
+                <span data-value="2">★</span>
+                <span data-value="3">★</span>
+                <span data-value="4">★</span>
+                <span data-value="5">★</span>
+            </div>
+
+            <div><strong>價格</strong></div>
+            <div class="rating" data-category="price">
+                <span data-value="1">★</span>
+                <span data-value="2">★</span>
+                <span data-value="3">★</span>
+                <span data-value="4">★</span>
+                <span data-value="5">★</span>
+            </div>
+
+            <div><strong>味道</strong></div>
+            <div class="rating" data-category="taste">
+                <span data-value="1">★</span>
+                <span data-value="2">★</span>
+                <span data-value="3">★</span>
+                <span data-value="4">★</span>
+                <span data-value="5">★</span>
+            </div>
+
+            <div><strong>情感</strong></div>
+            <div class="rating" data-category="emotion">
+                <span data-value="1">★</span>
+                <span data-value="2">★</span>
+                <span data-value="3">★</span>
+                <span data-value="4">★</span>
+                <span data-value="5">★</span>
+            </div>
+
+            <div><strong>總分</strong></div>
+            <div class="rating" data-category="total">
+                <span data-value="1">★</span>
+                <span data-value="2">★</span>
+                <span data-value="3">★</span>
+                <span data-value="4">★</span>
+                <span data-value="5">★</span>
+            </div>
+        </div>
+
+        <button onclick="saveDiary()">儲存日記</button>
+        <div id="saved-message" style="display:none; color:green; margin-top:10px;">儲存成功！</div>
+    </main>
+
+    <!-- 幫你選擇頁面 -->
+    <main id="selection-page">
+        <h2>幫你選擇美食</h2>
+        <button onclick="spinWheel()">轉轉看</button>
+        <div id="wheel-result" style="margin-top: 20px; font-size: 22px; font-weight: bold;"></div>
+    </main>
+
+    <footer>美食日記 &copy; 2025</footer>
+
+    <script>
+        // --- 頁籤切換功能 ---
+        const tabs = document.querySelectorAll('nav a');
+        const mains = document.querySelectorAll('main');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', e => {
+                e.preventDefault();
+                const targetId = tab.dataset.target;
+
+                mains.forEach(m => {
+                    if (m.id === targetId) {
+                        m.classList.add('active');
+                    } else {
+                        m.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        // --- 評分星星互動 ---
+        document.querySelectorAll('.rating').forEach(rating => {
+            rating.addEventListener('click', e => {
+                if (e.target.tagName !== 'SPAN') return;
+                const value = Number(e.target.dataset.value);
+                const category = rating.dataset.category;
+
+                // 先清除該區域所有星星active狀態
+                rating.querySelectorAll('span').forEach(span => span.classList.remove('active'));
+
+                // 將點選的星星及其左邊全部加上 active
+                rating.querySelectorAll('span').forEach(span => {
+                    if (Number(span.dataset.value) <= value) {
+                        span.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // --- 儲存日記 ---
+        function saveDiary() {
+            const storeName = document.getElementById('store-name').value.trim();
+            const description = document.getElementById('food-description').value.trim();
+            const mood = document.getElementById('mood-note').value.trim();
+            const category = document.getElementById('category').value;
+
+            // 取評分
+            function getRating(category) {
+                const ratingEl = document.querySelector(`.rating[data-category="${category}"]`);
+                const activeStars = ratingEl.querySelectorAll('span.active');
+                return activeStars.length;
+            }
+            const appearance = getRating('appearance');
+            const price = getRating('price');
+            const taste = getRating('taste');
+            const emotion = getRating('emotion');
+            const total = getRating('total');
+
+            if (!storeName) {
+                alert('請輸入店名');
+                return;
+            }
+            if (!description) {
+                alert('請輸入美食紀錄內容');
+                return;
+            }
+            if (total === 0) {
+                alert('請評分總分');
+                return;
+            }
+
+            // 圖片讀取
+            const fileInput = document.getElementById('image-upload');
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const imageBase64 = e.target.result;
+                    saveRecord(imageBase64);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                saveRecord(null);
+            }
+
+            function saveRecord(imageBase64) {
+                const record = {
+                    id: Date.now(),
+                    storeName,
+                    description,
+                    mood,
+                    category,
+                    appearance,
+                    price,
+                    taste,
+                    emotion,
+                    total,
+                    imageBase64
+                };
+
+                // 讀取現有資料
+                const data = JSON.parse(localStorage.getItem('foodDiary')) || [];
+                data.push(record);
+                localStorage.setItem('foodDiary', JSON.stringify(data));
+                alert('儲存成功！');
+
+                // 清除表單
+                document.getElementById('store-name').value = '';
+                document.getElementById('food-description').value = '';
+                document.getElementById('mood-note').value = '';
+                document.getElementById('category').value = '早餐';
+                fileInput.value = '';
+
+                // 清除評分
+                document.querySelectorAll('.rating').forEach(rating => {
+                    rating.querySelectorAll('span').forEach(span => span.classList.remove('active'));
+                });
+
+                // 更新歷史紀錄顯示
+                loadHistory();
+            }
+        }
+
+        // --- 載入歷史紀錄 ---
+        function loadHistory() {
+            const data = JSON.parse(localStorage.getItem('foodDiary')) || [];
+            const container = document.getElementById('history-content');
+            container.innerHTML = '';
+
+            if (data.length === 0) {
+                container.innerHTML = '<p>目前沒有美食紀錄</p>';
+                return;
+            }
+
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+
+                let imgHTML = '';
+                if (item.imageBase64) {
+                    imgHTML = `<div class="image-wrapper"><img src="${item.imageBase64}" alt="圖片" style="max-width: 100%; max-height: 250px; border-radius: 12px;"></div>`;
+                }
+
+                div.innerHTML = `
+    <h3>${item.storeName} - <small>${item.category}</small></h3>
+    ${imgHTML}
+    <p><strong>描述:</strong> ${item.description}</p>
+    <p><strong>心情:</strong> ${item.mood}</p>
+    <p><strong>評分:</strong> 
+        外觀 ${item.appearance} / 價格 ${item.price} / 味道 ${item.taste} / 情感 ${item.emotion} / 
+        總分 ${'★'.repeat(item.total)}${'☆'.repeat(5 - item.total)} (${item.total})
+    </p>
+    <button class="delete-btn" data-id="${item.id}">刪除</button>
+`;
+
+
+                container.appendChild(div);
+            });
+
+            // 綁定刪除按鈕事件
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const id = Number(e.target.dataset.id);
+                    deleteRecord(id);
+                });
+            });
+        }
+
+        // --- 刪除紀錄 ---
+        function deleteRecord(id) {
+            if (!confirm('確定要刪除這筆紀錄嗎？')) return;
+            let data = JSON.parse(localStorage.getItem('foodDiary')) || [];
+            data = data.filter(item => item.id !== id);
+            localStorage.setItem('foodDiary', JSON.stringify(data));
+            loadHistory();
+        }
+        // 綁定刪除按鈕事件
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = Number(btn.dataset.id);
+                let data = JSON.parse(localStorage.getItem('foodDiary')) || [];
+                data = data.filter(item => item.id !== id);
+                localStorage.setItem('foodDiary', JSON.stringify(data));
+                loadHistory(); // 重新載入畫面
+            });
+        });
+
+
+        // --- 幫你選擇轉盤功能 ---
+        function getStars(rating, max = 5) {
+            const fullStar = '★';
+            const emptyStar = '☆';
+            const fullCount = parseInt(rating);
+            return fullStar.repeat(fullCount) + emptyStar.repeat(max - fullCount);
+        }
+
+        function spinWheel() {
+            const data = JSON.parse(localStorage.getItem('foodDiary')) || [];
+            const resultEl = document.getElementById('wheel-result');
+
+            if (data.length === 0) {
+                resultEl.textContent = '目前沒有任何紀錄可以選擇喔！';
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * data.length);
+            const chosen = data[randomIndex];
+
+            resultEl.classList.remove('animate');
+            void resultEl.offsetWidth; // 強制 reflow 重觸發動畫
+            resultEl.classList.add('animate');
+
+            resultEl.innerHTML = `
+        🎯 今天就選：<strong>${chosen.storeName}</strong>（${chosen.category}）<br>
+        ${chosen.description}
+    `;
+        }
+
+
+
+
+
+
+
+        // 頁面載入時執行
+        loadHistory();
+        function spinWheel() {
+            const data = JSON.parse(localStorage.getItem('foodDiary')) || [];
+
+            const resultDiv = document.getElementById('wheel-result');
+            resultDiv.classList.remove('animate'); // 先移除動畫類別以重新觸發動畫
+
+            if (data.length === 0) {
+                resultDiv.textContent = '目前沒有可供選擇的美食紀錄喔～';
+                return;
+            }
+
+            // 隨機選擇一筆資料
+            const randomItem = data[Math.floor(Math.random() * data.length)];
+
+            // 顯示選擇結果
+            resultDiv.innerHTML = `
+        🎉 今天吃：<strong>${randomItem.storeName}</strong>！<br/>
+        <em>(${randomItem.category})</em>
+        ${randomItem.imageBase64 ? `<br/><img src="${randomItem.imageBase64}" alt="圖片" style="max-width: 200px; margin-top: 10px; border-radius: 12px;">` : ''}
+    `;
+
+            // 加上動畫效果
+            setTimeout(() => {
+                resultDiv.classList.add('animate');
+            }, 10);
+        }
+
+    </script>
+
+</body>
+
+</html>
